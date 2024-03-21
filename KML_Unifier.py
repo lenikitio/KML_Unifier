@@ -1,5 +1,5 @@
 from os import listdir
-
+# Объединение полётов
 with open("Полёты.kml", 'w', encoding= 'utf-8') as data:
     data.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
@@ -21,5 +21,27 @@ with open("Полёты.kml", 'w', encoding= 'utf-8') as data:
                            data.writelines(lines[13:-4])
     data.write('      </Folder>\n'
                 '    </Folder>\n'
+               '  </Document>\n'
+               '</kml>')
+    
+
+    # Объединение КТ из swmaps
+with open("КТ_и_ПБС.kml", 'w', encoding= 'utf-8') as data:
+    data.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
+               '  <Document>\n'
+               '    <name>КТ и ПБС</name>\n'
+               '      <open>0</open>\n'
+               '        <description>Exported using SW Maps</description>'
+               '          <Folder>')
+    for file in listdir('Отчеты/KML'):
+        if file.endswith(".kml"):
+                    flight = 'Отчеты/KML/' + file
+                    with open(flight, 'r', encoding= 'utf-8') as kml:
+                           lines = kml.readlines()
+                           data.writelines(lines[13:-4])
+
+                           
+    data.write('    </Folder>\n'
                '  </Document>\n'
                '</kml>')
