@@ -1,4 +1,5 @@
 from os import listdir
+import os
 import shutil
 from zipfile import ZipFile
 # Объединение полётов
@@ -14,14 +15,16 @@ with open("Полевые_данные.kml", 'w', encoding= 'utf-8') as data:
                '    <Folder>\n'
                '      <name>Выполненные_полёты</name>\n'
                '      <description>&lt;table border = &quot;1&quot; cellpadding = &quot;2&quot;>&lt;tr>&lt;td>Номер полета&lt;/td>&lt;td>001&lt;/td>&lt;/tr>&lt;tr>&lt;td>Номер борта&lt;/td>&lt;td>20305&lt;/td>&lt;/tr>&lt;tr>&lt;td>Дата&lt;/td>&lt;td>18.06.2023&lt;/td>&lt;/tr>&lt;tr>&lt;td>Время&lt;/td>&lt;td>08:45:08&lt;/td>&lt;/tr>&lt;/table></description>\n')
-    for file in listdir('Отчеты/KML'):
-        if file.endswith(".kml"):
-                    flight = 'Отчеты/KML/' + file
+
+
+    for root, dirs, files in os.walk('Отчеты'):
+        for file in files:
+            if file.endswith(".kml"):
+                    flight = os.path.join(root, file)
                     with open(flight, 'r', encoding= 'utf-8') as kml:
                             lines = kml.readlines()
                             count = 0
                             finish = 0
-
                             for i, elem in enumerate(lines):
                                 if elem.__contains__('<name>Площадная аэрофотосъемка</name>\n'):
                                         count += 1
