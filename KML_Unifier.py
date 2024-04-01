@@ -2,8 +2,9 @@ from os import listdir
 import os
 import shutil
 from zipfile import ZipFile
+
 # Объединение полётов
-with open("Полевые_данные.kml", 'w', encoding= 'utf-8') as data:
+with open("field_data.kml", 'w', encoding= 'utf-8') as data:
     data.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
                '  <Document>\n'
@@ -35,6 +36,7 @@ with open("Полевые_данные.kml", 'w', encoding= 'utf-8') as data:
                                 data.writelines(lines[finish:-3])
                             else:
                                 data.writelines(lines[11:-3])
+
 
     # Объединение КТ из swmaps
     data.write('    </Folder>\n'
