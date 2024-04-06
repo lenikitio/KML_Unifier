@@ -1,4 +1,3 @@
-
 from os import listdir
 import os
 from zipfile import ZipFile
@@ -45,14 +44,52 @@ file_kml = '<?xml version="1.0" encoding="UTF-8"?>\n' + \
                '  <Document>\n' + \
                '    <Folder>\n' + \
                '      <name>КТ_и_ПБС</name>\n' + \
+               '        <Style id="КТ">\n' + \
+               '            <IconStyle>\n' + \
+               '                <color>FF011DF0</color>\n' + \
+               '                <scale>0.5</scale>\n' + \
+               '                <Icon>\n' + \
+               '                    <href>http://maps.google.com/mapfiles/kml/shapes/donut.png</href>\n' + \
+               '                </Icon>\n' + \
+               '                <hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>\n' + \
+               '            </IconStyle>\n' + \
+               '            <LabelStyle>\n' + \
+               '                <scale>0</scale>\n' + \
+               '            </LabelStyle>\n' + \
+               '        </Style>\n' + \
+               '        <Style id="ПБС">\n' + \
+               '            <IconStyle>\n' + \
+               '                <scale>0.03</scale>\n' + \
+               '                <Icon>\n' + \
+               '                    <href>https://cdn.vseinstrumenti.ru/images/goods/4472406/1000x1000/63242250.jpg</href>\n' + \
+               '                </Icon>\n' + \
+               '                <hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>\n' + \
+               '            </IconStyle>\n' + \
+               '            <LabelStyle>\n' + \
+               '                <scale>0</scale>\n' + \
+               '            </LabelStyle>\n' + \
+               '        </Style>\n' + \
+               '        <Style id="ГГС">\n' + \
+               '            <IconStyle>\n' + \
+               '                <scale>0.02</scale>\n' + \
+               '                <Icon>\n' + \
+               '                    <href>https://cdn0.iconfinder.com/data/icons/smashicons-design-flat-vol-2/58/94_-_Triangle_design_graphic_tool-1024.png</href>\n' + \
+               '                </Icon>\n' + \
+               '                <hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>\n' + \
+               '            </IconStyle>\n' + \
+               '            <LabelStyle>\n' + \
+               '                <scale>0</scale>\n' + \
+               '            </LabelStyle>\n' + \
+               '        </Style>\n' + \
                '    </Folder>\n' + \
                '  </Document>\n' + \
                '</kml>'
 fold = ET.ElementTree(ET.fromstring(file_kml))
 root = fold.getroot()
-
 for dir in listdir('PVP_data/'):
     for group in listdir('PVP_data/' + dir):
+        if os.path.isdir('PVP_data/' + dir + '/' + group + '/Ground_Photo/Export') != True:
+             continue
         for file in listdir('PVP_data/' + dir + '/' + group + '/Ground_Photo/Export'):
             if file.endswith(".kmz"):
                 zip_point = 'PVP_data/' + dir + '/' + group + '/Ground_Photo/Export/' + file
@@ -68,9 +105,18 @@ for dir in listdir('PVP_data/'):
                             find_group = ET.SubElement(root[0][0], 'Folder', {'name' : group})
                             sub_name = ET.SubElement(find_group, 'name')
                             sub_name.text = group
-                        our_text = lines[2: -1]
-                        points_text = ET.ElementTree(ET.fromstringlist(our_text))
-                        find_group.append(points_text.getroot())
+                        new_tree = ET.ElementTree(ET.fromstringlist(lines))
+                        new_root = new_tree.getroot()
+                        all_placemark = new_root[0][3].findall('{http://www.opengis.net/kml/2.2}Placemark')
+                        for elem in all_placemark:
+                             type_point = elem[0].text[9]
+                             if type_point == 'P':
+                                  elem.find('{http://www.opengis.net/kml/2.2}styleUrl').text = '#ПБС'
+                             elif type_point.isnumeric() == True:
+                                  elem.find('{http://www.opengis.net/kml/2.2}styleUrl').text = '#КТ'
+                             else:
+                                  elem.find('{http://www.opengis.net/kml/2.2}styleUrl').text = '#ГГС'
+                             find_group.append(elem)
 point_to_write = str(ET.tostring(root, encoding= 'utf-8', method= 'xml', xml_declaration=True).decode())
 with open("point_data.kml", 'w', encoding= 'utf-8') as points_data:
      points_data.write(point_to_write)
