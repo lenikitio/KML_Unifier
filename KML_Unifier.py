@@ -4,8 +4,8 @@ from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 
 # Объединение полётов
-with open("flight_data.kml", 'w', encoding= 'utf-8') as flight_data:
-    flight_data.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+with open("flight_data.kml", 'w', encoding= 'utf-8') as fly_data:
+    fly_data.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
                '  <Document>\n'
                '    <Style id="style_zone">\n'
@@ -30,11 +30,11 @@ with open("flight_data.kml", 'w', encoding= 'utf-8') as flight_data:
                                         finish = i + 11
                             begin = finish - (12 * count)
                             if begin != 0:
-                                flight_data.writelines(lines[11: begin])
-                                flight_data.writelines(lines[finish:-3])
+                                fly_data.writelines(lines[11: begin])
+                                fly_data.writelines(lines[finish:-3])
                             else:
-                                flight_data.writelines(lines[11:-3])
-    flight_data.write('    </Folder>\n'
+                                fly_data.writelines(lines[11:-3])
+    fly_data.write('    </Folder>\n'
                '  </Document>\n'
                '</kml>')
 
@@ -124,25 +124,30 @@ with open("point_data.kml", 'w', encoding= 'utf-8') as points_data:
                         
 
 # Создание файла с исходными данными
-with open("initial_data.kml", 'w', encoding='utf-8') as initial_data:
-        initial_data.write(
-               '<?xml version="1.0" encoding="UTF-8"?>\n'
-               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-               '  <Document>\n'
-               )
-        for root, dirs, files in os.walk('Исходные_данные'):
-                for file in files:
-                    if file.endswith(".kml"):
-                        points = os.path.join(root, file)
-                        with open(points, 'r', encoding= 'utf-8') as kml:
-                             lines = kml.readlines()
-                             initial_data.write('    <Folder>\n')
-                             initial_data.writelines(lines[3: -2])
-                             initial_data.write('    </Folder>\n')
+file_initial = '<?xml version="1.0" encoding="UTF-8"?>\n' + \
+               '<kml xmlns="http://www.opengis.net/kml/2.2">\n' + \
+               '  <Document>\n' + \
+               '   <Folder>\n' + \
+               '    <name>Исходные данные</name>\n' + \
+               '   </Folder>\n' + \
+               '  </Document>\n' + \
+               '</kml>'
+initial_tree = ET.ElementTree(ET.fromstring(file_initial))
+initial_root= initial_tree.getroot()
+for root, dirs, files in os.walk('Исходные_данные'):
+        for file in files:
+            if file.endswith(".kml"):
+                source = os.path.join(root, file)
+                with open(source, 'r', encoding= 'utf-8') as kml:
+                     lines = kml.readlines()
+                     work_tree = ET.ElementTree(ET.fromstringlist(lines))
+                     work_root = work_tree.getroot()
+                     document_name = ET.SubElement(work_root[0], 'name')
+                     document_name.text = file
+                     initial_root[0][0].append(work_root[0])
+initial_to_write = str(ET.tostring(initial_root, encoding= 'utf-8', method= 'xml', xml_declaration=True).decode())
+with open("initial_data.kml", 'w', encoding= 'utf-8') as initial:
+     initial.write(initial_to_write)
 
-         
-
-        initial_data.write('  </Document>\n'
-             '</kml>')
      
     
