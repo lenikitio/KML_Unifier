@@ -105,6 +105,9 @@ for dir in listdir('PVP_data/'):
                             find_group = ET.SubElement(root[0][0], 'Folder', {'name' : group})
                             sub_name = ET.SubElement(find_group, 'name')
                             sub_name.text = group
+                        date_folder = ET.SubElement(find_group, 'Folder', {'name' : dir})
+                        date_folder_name = ET.SubElement(date_folder, 'name')
+                        date_folder_name.text = dir
                         new_tree = ET.ElementTree(ET.fromstringlist(lines))
                         new_root = new_tree.getroot()
                         all_placemark = new_root[0][3].findall('{http://www.opengis.net/kml/2.2}Placemark')
@@ -116,7 +119,7 @@ for dir in listdir('PVP_data/'):
                                   elem.find('{http://www.opengis.net/kml/2.2}styleUrl').text = '#КТ'
                              else:
                                   elem.find('{http://www.opengis.net/kml/2.2}styleUrl').text = '#ГГС'
-                             find_group.append(elem)
+                             date_folder.append(elem)
 point_to_write = str(ET.tostring(root, encoding= 'utf-8', method= 'xml', xml_declaration=True).decode())
 with open("point_data.kml", 'w', encoding= 'utf-8') as points_data:
      points_data.write(point_to_write)
