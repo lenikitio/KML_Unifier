@@ -133,6 +133,9 @@ file_initial = '<?xml version="1.0" encoding="UTF-8"?>\n' + \
                '   <Folder>\n' + \
                '    <name>Исходные данные</name>\n' + \
                '   </Folder>\n' + \
+               '   <Folder>\n' + \
+               '    <name>Режимы</name>\n' + \
+               '   </Folder>\n' + \
                '  </Document>\n' + \
                '</kml>'
 initial_tree = ET.ElementTree(ET.fromstring(file_initial))
@@ -140,6 +143,9 @@ initial_root= initial_tree.getroot()
 for root, dirs, files in os.walk('Исходные_данные'):
         for file in files:
             if file.endswith(".kml"):
+                appended_root = initial_root[0][1]
+                if dirs.__contains__('Режимы'):
+                    appended_root = initial_root[0][0]
                 source = os.path.join(root, file)
                 with open(source, 'r', encoding= 'utf-8') as kml:
                      lines = kml.readlines()
@@ -147,7 +153,7 @@ for root, dirs, files in os.walk('Исходные_данные'):
                      work_root = work_tree.getroot()
                      document_name = ET.SubElement(work_root[0], 'name')
                      document_name.text = file
-                     initial_root[0][0].append(work_root[0])
+                     appended_root.append(work_root[0])
 initial_to_write = str(ET.tostring(initial_root, encoding= 'utf-8', method= 'xml', xml_declaration=True).decode())
 with open("initial_data.kml", 'w', encoding= 'utf-8') as initial:
      initial.write(initial_to_write)
