@@ -3,40 +3,54 @@ import os
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 
+
 # Объединение полётов
-with open("flight_data.kml", 'w', encoding= 'utf-8') as fly_data:
-    fly_data.write('<?xml version="1.0" encoding="UTF-8"?>\n'
-               '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
-               '  <Document>\n'
-               '    <Style id="style_zone">\n'
-               '      <LineStyle>\n'
-               '        <color>FFFF0000</color>\n'
-               '      </LineStyle>\n'
-               '    </Style>\n'
-               '    <Folder>\n'
-               '      <name>Выполненные_полёты</name>\n'
-               '      <description>&lt;table border = &quot;1&quot; cellpadding = &quot;2&quot;>&lt;tr>&lt;td>Номер полета&lt;/td>&lt;td>001&lt;/td>&lt;/tr>&lt;tr>&lt;td>Номер борта&lt;/td>&lt;td>20305&lt;/td>&lt;/tr>&lt;tr>&lt;td>Дата&lt;/td>&lt;td>18.06.2023&lt;/td>&lt;/tr>&lt;tr>&lt;td>Время&lt;/td>&lt;td>08:45:08&lt;/td>&lt;/tr>&lt;/table></description>\n')
-    for root, dirs, files in os.walk('Отчеты'):
-        for file in files:
-            if file.endswith(".kml"):
-                    flight = os.path.join(root, file)
-                    with open(flight, 'r', encoding= 'utf-8') as kml:
-                            lines = kml.readlines()
-                            count = 0
-                            finish = 0
-                            for i, elem in enumerate(lines):
-                                if elem.__contains__('<name>Площадная аэрофотосъемка</name>\n'):
-                                        count += 1
-                                        finish = i + 11
-                            begin = finish - (12 * count)
-                            if begin != 0:
-                                fly_data.writelines(lines[11: begin])
-                                fly_data.writelines(lines[finish:-3])
-                            else:
-                                fly_data.writelines(lines[11:-3])
-    fly_data.write('    </Folder>\n'
-               '  </Document>\n'
-               '</kml>')
+file_flight =  '<?xml version="1.0" encoding="UTF-8"?>\n' + \
+               '<kml xmlns="http://www.opengis.net/kml/2.2">\n' + \
+               '  <Document>\n' + \
+               '    <Style id="style_zone">\n' + \
+               '      <LineStyle>\n' + \
+               '        <color>FFFF0000</color>\n' + \
+               '      </LineStyle>\n'+ \
+               '    </Style>\n' + \
+               '    <Folder>\n' + \
+               '      <name>Выполненные_полёты</name>\n' + \
+               '      <description>&lt;table border = &quot;1&quot; cellpadding = &quot;2&quot;>&lt;tr>&lt;td>Номер полета&lt;/td>&lt;td>001&lt;/td>&lt;/tr>&lt;tr>&lt;td>Номер борта&lt;/td>&lt;td>20305&lt;/td>&lt;/tr>&lt;tr>&lt;td>Дата&lt;/td>&lt;td>18.06.2023&lt;/td>&lt;/tr>&lt;tr>&lt;td>Время&lt;/td>&lt;td>08:45:08&lt;/td>&lt;/tr>&lt;/table></description>\n' + \
+               '    </Folder>\n' + \
+               '  </Document>\n' + \
+               '</kml>'
+fly_tree = ET.ElementTree(ET.fromstring(file_flight))
+fly_root = fly_tree.getroot()
+for root, dirs, files in os.walk('Отчеты'):
+    for file in files:
+        if file.endswith(".kml"):
+            flight = os.path.join(root, file)
+            flag = False
+            fly_folder = fly_root[0][1]
+            if fly_folder.find('Folder') != None:
+                for project in fly_folder.findall('Folder'):
+                    if project.attrib['name'] == file[-15: -10]:
+                        flag = True
+                        board_folder = project
+            if flag == False:
+                board_folder = ET.SubElement(fly_folder, 'Folder', {'name' : file[-15: -10]})
+                sub_name = ET.SubElement(board_folder, 'name')
+                sub_name.text = file[-15: -10]
+            with open(flight, 'r', encoding= 'utf-8') as fly_data:
+                 lines = fly_data.readlines()
+                 lines_tree = ET.ElementTree(ET.fromstringlist(lines))
+                 lines_root = lines_tree.getroot()
+                 for placemark in lines_root[0][1][2].findall('{http://www.opengis.net/kml/2.2}Placemark'):
+                    if placemark[0].text == 'Площадная аэрофотосъемка':
+                           lines_root[0][1][2].remove(placemark)
+                       
+                 board_folder.append(lines_root[0][1][2])
+fly_to_write = str(ET.tostring(fly_root, encoding= 'utf-8', method= 'xml', xml_declaration=True).decode())
+with open("flight_data.kml", 'w', encoding= 'utf-8') as flight_data:
+     flight_data.write(fly_to_write)
+
+             
+
 
 #Объединение КТ из swmaps
 file_kml = '<?xml version="1.0" encoding="UTF-8"?>\n' + \
@@ -101,6 +115,7 @@ for dir in listdir('PVP_data/'):
                              for project in root[0][0].findall('Folder'):
                                   if project.attrib['name'] == group:
                                        flag = True
+                                       find_group = project
                         if flag == False:
                             find_group = ET.SubElement(root[0][0], 'Folder', {'name' : group})
                             sub_name = ET.SubElement(find_group, 'name')
